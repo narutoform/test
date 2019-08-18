@@ -1,0 +1,13 @@
+server:
+  port: 8088
+spring.application.name: startGateway
+eureka:
+  client:
+    service-url: 
+      defaultZone: http://root:root@localhost:10000/eureka
+zuul.routes.three.path: /three/**
+zuul.routes.three.service-id: three
+zuul.routes.three.stripPrefix: false
+zuul.routes.five.path: /five/**
+zuul.routes.five.service-id: five
+zuul.routes.five.stripPrefix: false

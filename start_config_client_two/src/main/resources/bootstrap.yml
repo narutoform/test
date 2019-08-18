@@ -1,0 +1,13 @@
+#开启配置服务发现
+spring.cloud.config.discovery.enabled: true
+spring.cloud.config.enabled: true
+#配置服务实例名称
+spring.cloud.config.discovery.service-id: springCloudConfigService
+#配置文件所在分支
+spring.cloud.config.label: master
+spring.cloud.config.profile: prod
+#配置服务中心
+spring.cloud.config.uri: http://localhost:20000/
+eureka.client.service-url.defaultZone: http://localhost:10000/eureka
+eureka.instance.preferIpAddress: true
+management.endpoints.web.exposure.include: bus-refresh

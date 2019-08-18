@@ -1,0 +1,143 @@
+server:
+  port: 11111
+  tomcat: 
+      uri-encoding: UTF-8
+      max-threads: 500
+      max-connections: 10000  
+management.endpoint.health.show-details: always
+feign.sentinel.enabled: true
+spring.application.name: StartTestTwo
+#spring.cloud.sentinel.port: 8719
+#spring.cloud.sentinel.transport.dashboard: localhost:8079
+management.endpoints.web.exposure.include: '*'
+
+# feign日志
+logging.level.cn.chinotan.feign: DEBUG
+
+#default可替换
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          #线程池隔离还是信号量隔离 默认是THREAD 信号量是SEMAPHORE 
+          strategy: THREAD
+          semaphore:
+            #使用信号量隔离时，支持的最大并发数 默认10
+            maxConcurrentRequests: 10
+          thread:
+            #command的执行的超时时间 默认是1000
+            timeoutInMilliseconds: 1000
+            #HystrixCommand.run()执行超时时是否被打断 默认true
+            interruptOnTimeout: true
+            #HystrixCommand.run()被取消时是否被打断 默认false
+            interruptOnCancel: false
+        timeout:
+          #command执行时间超时是否抛异常 默认是true
+          enabled: true
+        fallback:
+          #当执行失败或者请求被拒绝，是否会尝试调用hystrixCommand.getFallback()
+          enabled: true
+          isolation:
+            semaphore:
+              #如果并发数达到该设置值，请求会被拒绝和抛出异常并且fallback不会被调用 默认10
+              maxConcurrentRequests: 10
+      circuitBreaker:
+        #用来跟踪熔断器的健康性，如果未达标则让request短路 默认true
+        enabled: true
+        #一个rolling window内最小的请求数。如果设为20，那么当一个rolling window的时间内
+        #（比如说1个rolling window是10秒）收到19个请求，即使19个请求都失败，也不会触发circuit break。默认20
+        requestVolumeThreshold: 5
+        # 触发短路的时间值，当该值设为5000时，则当触发circuit break后的5000毫秒内
+        #都会拒绝request，也就是5000毫秒后才会关闭circuit，放部分请求过去。默认5000
+        sleepWindowInMilliseconds: 5000
+        #错误比率阀值，如果错误率>=该值，circuit会被打开，并短路所有请求触发fallback。默认50
+        errorThresholdPercentage: 50
+        #强制打开熔断器，如果打开这个开关，那么拒绝所有request，默认false
+        forceOpen: false
+        #强制关闭熔断器 如果这个开关打开，circuit将一直关闭且忽略
+        forceClosed: false
+      metrics:
+        rollingStats:
+          #设置统计的时间窗口值的，毫秒值，circuit break 的打开会根据1个rolling window的统计来计算。若rolling window被设为10000毫秒，
+          #则rolling window会被分成n个buckets，每个bucket包含success，failure，timeout，rejection的次数的统计信息。默认10000
+          timeInMilliseconds: 10000
+          #设置一个rolling window被划分的数量，若numBuckets＝10，rolling window＝10000，
+          #那么一个bucket的时间即1秒。必须符合rolling window % numberBuckets == 0。默认10
+          numBuckets: 10
+        rollingPercentile:
+          #执行时是否enable指标的计算和跟踪，默认true
+          enabled: true
+          #设置rolling percentile window的时间，默认60000
+          timeInMilliseconds: 60000
+          #设置rolling percentile window的numberBuckets。逻辑同上。默认6
+          numBuckets: 6
+          #如果bucket size＝100，window＝10s，若这10s里有500次执行，
+          #只有最后100次执行会被统计到bucket里去。增加该值会增加内存开销以及排序的开销。默认100
+          bucketSize: 100
+        healthSnapshot:
+          #记录health 快照（用来统计成功和错误绿）的间隔，默认500ms
+          intervalInMilliseconds: 500
+      requestCache:
+        #默认true，需要重载getCacheKey()，返回null时不缓存
+        enabled: true
+      requestLog:
+        #记录日志到HystrixRequestLog，默认true
+        enabled: true
+  collapser:
+    default:
+      #单次批处理的最大请求数，达到该数量触发批处理，默认Integer.MAX_VALUE
+      maxRequestsInBatch: 2147483647
+      #触发批处理的延迟，也可以为创建批处理的时间＋该值，默认10
+      timerDelayInMilliseconds: 10
+      requestCache:
+        #是否对HystrixCollapser.execute() and HystrixCollapser.queue()的cache，默认true
+        enabled: true
+  threadpool:
+    default:
+      #并发执行的最大线程数，默认10
+      coreSize: 10
+      #Since 1.5.9 能正常运行command的最大支付并发数
+      maximumSize: 10
+      #BlockingQueue的最大队列数，当设为－1，会使用SynchronousQueue，值为正时使用LinkedBlcokingQueue。
+      #该设置只会在初始化时有效，之后不能修改threadpool的queue size，除非reinitialising thread executor。
+      #默认－1。
+      maxQueueSize: -1
+      #即使maxQueueSize没有达到，达到queueSizeRejectionThreshold该值后，请求也会被拒绝。
+      #因为maxQueueSize不能被动态修改，这个参数将允许我们动态设置该值。if maxQueueSize == -1，该字段将不起作用
+      queueSizeRejectionThreshold: 5
+      #Since 1.5.9 该属性使maximumSize生效，值须大于等于coreSize，当设置coreSize小于maximumSize
+      allowMaximumSizeToDivergeFromCoreSize: false
+      #如果corePoolSize和maxPoolSize设成一样（默认实现）该设置无效。
+      #如果通过plugin（https://github.com/Netflix/Hystrix/wiki/Plugins）使用自定义实现，该设置才有用，默认1.
+      keepAliveTimeMinutes: 1
+      metrics:
+        rollingStats:
+          #线程池统计指标的时间，默认10000
+          timeInMilliseconds: 10000
+          #将rolling window划分为n个buckets，默认10
+          numBuckets: 10
+spring:
+  redis:
+    database: 0
+    host: 127.0.0.1
+    jedis:
+      pool:
+        #最大连接数据库连接数
+        max-active: 5000
+        #最大等待连接中的数量
+        max-idle: 5000
+        #最大建立连接等待时间。如果超过此时间将接到异常。设为-1表示无限制。
+        max-wait: -1
+        #最小等待连接中的数量,设 0 为没有限制
+        min-idle: 10
+#    lettuce:
+#      pool:
+#        max-active: 5000
+#        max-idle: 5000
+#        max-wait: -1
+#        min-idle: 10
+#      shutdown-timeout: 5000ms
+    password:
+    port: 6379
+    timeout: 5000

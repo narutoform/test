@@ -1,0 +1,13 @@
+server:
+  port: 5555
+spring.application.name: five
+eureka:
+  client:
+    healthcheck: true
+    enabled: true
+    service-url: 
+      defaultZone: http://root:root@localhost:10000/eureka
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
